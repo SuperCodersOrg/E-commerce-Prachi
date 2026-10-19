@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Password</title>
+</head>
+<body>
+    <form action="/auth/changePass" method="POST">
+<!-- 
+        <label for="username">Username: </label>
+        <input type="text" placeholder="username" id="username" name="username">
+
+        <br/><br/> -->
+        <label for="email">Email: </label>
+        <input type="email" placeholder="Enter your Email" id="email" name="email">
+
+        <label for="password">Current Password: </label>
+        <input type="password" name="password"  id="password" placeholder="Current password">
+
+        <br/><br/>
+        <label for="newPassword">New Password: </label>
+        <input type="password" name="newPassword" placeholder="New password" id="newPassword" required>
+        <br/><br/>
+
+        <label for="rePassword">Confirm Password: </label>
+        <input type="password" name="rePassword" placeholder="Confirm password" id="rePassword" required>
+
+        <input type="submit" placeholder="Submit">
+
+    </form>
+</body>
+</html>

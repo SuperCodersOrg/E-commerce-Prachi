@@ -1,0 +1,143 @@
+* {
+    box-sizing: border-box;
+}
+
+.main-header {
+    width: 100%;
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #E5DCD1;
+    box-shadow: 0 4px 15px rgba(73, 55, 45, 0.12);
+    position: relative;
+    z-index: 100;
+}
+
+.navbar {
+    max-width: 1400px;
+    min-height: 85px;
+    margin: 0 auto;
+    padding: 15px 35px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+}
+
+
+.brand {
+    color: #49372D;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.brand h1 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: 25px;
+    font-weight: normal;
+    letter-spacing: 2px;
+}
+
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.nav-links a {
+    color: #49372D;
+    text-decoration: none;
+    font-size: 14px;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: #A76D60;
+}
+
+.nav-links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 0;
+    height: 1px;
+    background-color: #705440;
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+
+.nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.nav-icons a {
+    width: 25px;
+    height: 30px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    color: #49372D;
+    font-size: 19px;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.nav-icons a:hover {
+    color: #A76D60;
+}
+
+
+@media (max-width: 900px) {
+    .navbar {
+        padding: 15px 20px;
+        gap: 18px;
+    }
+
+    .brand h1 {
+        font-size: 21px;
+    }
+
+    .nav-links {
+        gap: 16px;
+    }
+
+    .nav-icons {
+        gap: 13px;
+    }
+}
+
+@media (max-width: 650px) {
+    .navbar {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 15px;
+        gap: 18px;
+    }
+
+    .brand {
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-links {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 18px;
+    }
+
+    .nav-icons {
+        width: 100%;
+        justify-content: center;
+        gap: 25px;
+    }
+}

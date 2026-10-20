@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="/css/header.css">
+<link rel="stylesheet" href="/css/home.css">
+<link rel="stylesheet" href="/css/productDetails.css">
+    <title>Home</title>
+</head>
+<body>
+    <%- include('./partials/header.ejs') %>
+     
+    <section class="product-details">
+        <div class="details-image">
+
+            <img src="/<%= product.image.replace(/^public\//, '') %>" alt="<%= product.name %>">
+
+    
+         </div>
+         <div class="details-info">
+            <h1><%= product.name %></h1>
+
+            <p><strong>Brand:</strong> <%= product.brand %></p>
+            <p><strong>Category:</strong> <%= product.category %></p>
+            <p><strong>Price:</strong> ₹<%= product.price %></p>
+            <p><strong>Size:</strong> <%= product.size %></p>
+            <p><strong>Available Stock:</strong> <%= product.stock %></p>
+            <p><strong>Rating:</strong> ⭐ <%= product.ratings %>/5</p>
+            <p><strong>Description:</strong> <%= product.description %></p>
+            <a href="/home" class="back-btn">Back to Products</a>
+            
+            </div>
+</body>
+</html>

@@ -4,23 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signin</title>
+
+    <link rel="stylesheet" href="/css/signin.css">
+
+
 </head>
 <body>
+
+    <h1>Seraphic</h1>
+
+    <div class="signin-box">
+        
     <form method="POST" action="/auth/signin">
 
         <label for="username">Username: </label>
         <input type="text" placeholder="username" id="username" name="username">
 
-        <br/><br/>
+        
         <label for="email">Email: </label>
         <input type="email" placeholder="Enter your Email" id="email" name="email">
 
-        <br/><br/>
+        
         <label for="password">Password: </label>
         <input type="password" placeholder="password" id="password" name="password" required>
 
-        <br/><br/>
+        
         <input type="submit" placeholder="Submit">
     </form>
+
+     </div>
 </body>
 </html>
+
+

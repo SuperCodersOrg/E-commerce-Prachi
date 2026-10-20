@@ -3,10 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="/css/header.css">
+<link rel="stylesheet" href="/css/home.css">
     <title>Home</title>
 </head>
 <body>
-    <h1>Welcome <%= username %></h1>
-    <h1>We are here</h1>
+    <%- include('./partials/header.ejs') %>
+     
+    <div class="product-grid">
+    <% fileData.forEach(product=>{ %>
+         <div class="product-card">
+
+            <img src="/<%= product.image.replace(/^public\//, '') %>" alt="<%= product.name %>">
+
+            <a href="/home/products/<%= product.id %>"> View Details  </a>
+         </div>
+    <% }); %>
+         </div>
+
+
 </body>
 </html>

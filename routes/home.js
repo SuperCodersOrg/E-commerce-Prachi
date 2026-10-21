@@ -21,7 +21,7 @@ router.get('/',(req,res)=>{
 
     const file = fs.readFileSync(path.join(__dirname,'..','data','/products.json'));
     console.log(__dirname);
-    const fileData = JSON.parse(file);
+    const fileData = JSON.parse(file); 
 
     console.log(fileData);
     console.log("udu");

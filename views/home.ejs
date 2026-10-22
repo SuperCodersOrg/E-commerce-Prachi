@@ -25,8 +25,8 @@
          </div>
     <% }); %>
          </div>
-         <button type="button" id="load-more" <%= hasMore ? '' : 'hidden' %>>Load More.</button>
-    <script src="../public/js/home.js" defer></script>
+          <button type="button" id="load-more" data-next-cursor= "<%= nextCursor || ''%>" <%= hasMore ? '' : 'hidden' %>>Load More.</button>
+    <script src="/js/home.js" defer></script>
 
 </body>
 </html>

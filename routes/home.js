@@ -27,14 +27,16 @@ console.log("try catch");
     console.log("last id",lastId);
     const query = {};
     
+
     if(lastId){
         if(!mongoose.isValidObjectId(lastId)){
-            res.status(404).send("Products are not present");
+           return res.status(404).send("Products are not present");
         }
 
         query._id = {
             $gt : new mongoose.Types.ObjectId(lastId)
 
+        }
         }
         const products = await Products.find(query).limit(limit + 1);
         console.log();
@@ -48,24 +50,22 @@ console.log("try catch");
 
         const nextCursor = fileData.length ? fileData[fileData.length - 1]._id.toString(): null  ; 
 
+    
         if(!lastId){
-            return res.render('/home',{
+            return res.render('home',{
                 fileData,
                 hasMore,
                 nextCursor
             })
         }
+    
 
        return res.json({
         products: fileData,
         hasMore,
         nextCursor
-       })
-    //     console.log(fileData);
-    //     console.log("udu");
+       });
     
-    // return res.render('home',{fileData , hasMore});
-}
     }
     catch(err){
         console.log("rrror occured");

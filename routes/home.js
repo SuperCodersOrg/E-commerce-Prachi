@@ -12,28 +12,94 @@ const { json } = require('stream/consumers');
 
 router.use('/auth',auth);
 
-
-// router.use('view engine','ejs');
-
+const Products = require('../Modles/products.js');
+const { default: mongoose } = require('mongoose');
 router.use( verifyToken);
 
-router.get('/',(req,res)=>{
+const limit = 5;
 
-    const file = fs.readFileSync(path.join(__dirname,'..','data','/products.json'));
-    console.log(__dirname);
-    const fileData = JSON.parse(file); 
+router.get('/',async (req,res)=>{
 
-    console.log(fileData);
-    console.log("udu");
+console.log("try catch");
+    try{
     
-    res.render('home',{fileData});
+    const { lastId } = req.query;
+    console.log("last id",lastId);
+    const query = {};
+    
+    if(lastId){
+        if(!mongoose.isValidObjectId(lastId)){
+            res.status(404).send("Products are not present");
+        }
+
+        query._id = {
+            $gt : new mongoose.Types.ObjectId(lastId)
+
+        }
+        const products = await Products.find(query).limit(limit + 1);
+        console.log();
+        if(!products){
+            return res.send("products are not vailabe");
+        }
+
+        const hasMore = products.length > limit;
+
+        const fileData = products.slice(0,limit);
+
+        const nextCursor = fileData.length ? fileData[fileData.length - 1]._id.toString(): null  ; 
+
+        if(!lastId){
+            return res.render('/home',{
+                fileData,
+                hasMore,
+                nextCursor
+            })
+        }
+
+       return res.json({
+        products: fileData,
+        hasMore,
+        nextCursor
+       })
+    //     console.log(fileData);
+    //     console.log("udu");
+    
+    // return res.render('home',{fileData , hasMore});
+}
+    }
+    catch(err){
+        console.log("rrror occured");
+             console.log(err);
+             return res.send("Can't lssd");
+    }
 })
 
-router.get('/products/:id',(req,res)=>{
-    const file = fs.readFileSync(path.join(__dirname,'..','data','/products.json'));
-    const fileData = JSON.parse(file); 
+
+//     catch(error){
+//         console.log(error);
+//         if(req.query.lastId){
+//             return res.status(500).json({message: 'Unable to load more products'})
+//         }
+
+//         res.status(500).send('Unable to load products');
+
+// )
+// }        
+
+router.get('/products/:id',async(req,res)=>{
+
+    const { id } = req.params;
+
     
-   const product = fileData.find((image)=>image.id == req.params.id)
+     if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send('Invalid product ID');
+        }
+
+    const product = await Products.findById(id);
+
+    if(!product){
+        return res.status(404).send('Product not found');
+    }
     console.log(product);
     res.render('productDetails',{ product });
 })

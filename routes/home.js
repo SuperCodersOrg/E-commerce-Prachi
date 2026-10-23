@@ -13,6 +13,7 @@ const { json } = require('stream/consumers');
 router.use('/auth',auth);
 
 const Products = require('../Modles/products.js');
+const addToCart = require('../Modles/addToCart.js');
 const { default: mongoose } = require('mongoose');
 router.use( verifyToken);
 
@@ -73,18 +74,7 @@ console.log("try catch");
              return res.send("Can't lssd");
     }
 })
-
-
-//     catch(error){
-//         console.log(error);
-//         if(req.query.lastId){
-//             return res.status(500).json({message: 'Unable to load more products'})
-//         }
-
-//         res.status(500).send('Unable to load products');
-
-// )
-// }        
+   
 
 router.get('/products/:id',async(req,res)=>{
 
@@ -102,6 +92,20 @@ router.get('/products/:id',async(req,res)=>{
     }
     console.log(product);
     res.render('productDetails',{ product });
+})
+
+router.get('/cart/:id',async (req,res)=>{
+
+    let item = req.params;
+    console.log("item selected",item);
+
+    const Product = await Products.findById(item.id);
+    console.log("product is",Product._id);
+
+    addToCart.insertOne({Product});
+    return res.status(200).send("added to cart");
+
+    
 })
 
 module.exports = router;

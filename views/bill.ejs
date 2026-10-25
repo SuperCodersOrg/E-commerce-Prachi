@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill</title>
+</head>
+<body>
+    <div class="products">
+
+        <% products.forEach((product)=>{ %>
+
+            <div class="billData">
+
+               <p> <%= product.image  %></p>
+                <p> <%= product.name %></p>
+                <p> <%= product.quantity %></p>
+                <p> <%= product.price %></p>
+                <p> <%= product.gst %></p>
+                <p> <%= Total  %></p>
+                
+               
+            </div>
+
+        <%  }) %>
+
+        <h3>Mode of Payment : </h3>
+
+        <label>Cash On Delivery
+
+        <input type="radio" name="payment" value="COD">
+
+        </label>
+        
+        <label>UPI
+
+            <input type="radio" name="payment" value="UPI"> 
+
+        </label>
+
+        <label>Credit Card / Debit Card
+
+            <input type="radio" name="payment" value="card"> 
+
+        </label>
+
+        
+            <button type="submit">Pay</button>
+
+    </div>
+</body>
+</html>

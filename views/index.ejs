@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Seraphic </title>
     <link rel="stylesheet" href="/css/index.css">
 </head>
+
 <body>
 
     <header class="navbar">
@@ -17,7 +19,7 @@
         </nav>
     </header>
 
-      <main class="hero">
+    <main class="hero">
         <div class="hero-content">
             <p class="subtitle">WELCOME TO SERAPHIC</p>
 
@@ -30,14 +32,14 @@
 
             <div class="hero-buttons">
 
-        <a href="/auth/login" class="secondary-btn">Login</a>
-        
-        <a href="/auth/signin" class="primary-btn">Get Started</a>
-        
+                <a href="/auth/login" class="secondary-btn">Login</a>
+
+                <a href="/home" class="primary-btn">Get Started</a>
+
+            </div>
         </div>
-        </div>
-       
-         <div class="hero-image">
+
+        <div class="hero-image">
             <img src="/images/bodycon.png" alt="Featured fashion collection">
         </div>
     </main>
@@ -45,9 +47,14 @@
     <footer>
         <p>© 2026 Seraphic. Style that speaks for you.</p>
 
-        <a href="/auth/logout">Logout</a>
+    <form action="/auth/logout" method="POST" class="logout-form">
+        <button type="submit" class="logout-link">Logout</button>
+    </form>
+         
+
     </footer>
 
-    
+
 </body>
+
 </html>

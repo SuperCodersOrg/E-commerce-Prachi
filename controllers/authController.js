@@ -58,6 +58,7 @@ exports.postLogin = async (req, res) => {
     }
 
     const payload = {
+        userId: user._id,
         username: username,
         email: email,
     }
@@ -65,7 +66,6 @@ exports.postLogin = async (req, res) => {
     const token = jwt.sign(
         payload, 
         cookie_Security_Key,
-         
         { expiresIn: '1hr' }
 
     )
@@ -113,6 +113,7 @@ exports.postSignin = async (req, res) => {
     });
 
     const payload = {
+        userId: userDetails._id,
         username: req.body.username,
         email: req.body.email,
     }

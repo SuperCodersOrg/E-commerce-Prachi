@@ -141,3 +141,27 @@
         gap: 25px;
     }
 }
+.nav-links form.logout-form {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links button.logout-link {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: #49372D;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: color 0.3s ease;
+}
+
+.nav-links button.logout-link:hover {
+    color: #A76D60;
+}

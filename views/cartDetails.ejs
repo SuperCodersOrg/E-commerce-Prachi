@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add to Cart</title>
+</head>
+<body>
+    <h1>Hi! cart here</h1>
+    <div class="product">
+
+        <% product.forEach((item)=>{ %>
+            <div class="product-card">
+                <h2><%= item.name %></h2>
+                <p>Price: ₹<%= item.price %></p>
+                <p>quantity + or -</p>
+                <% if(item.image) { %>
+                    <img src="/images/<%= item.image %>" alt="<%= item.name %>" width="150">
+                  <% } %>
+
+            </div>
+
+             <hr>
+       <% }) %>
+        <p>Total:</p>
+       <a href="/userAddress">Place Order</a>
+
+    </div>
+</body>
+</html>

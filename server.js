@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname,'public')));
 app.set('view engine','ejs');
 
-connectDb();
+ connectDb();
 
 app.get('/',(req,res)=>{
 res.render('index');

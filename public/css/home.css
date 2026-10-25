@@ -115,7 +115,7 @@ body {
     background-color: #705440;
 }
 
-/* Tablet */
+
 @media (max-width: 900px) {
     .product-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));

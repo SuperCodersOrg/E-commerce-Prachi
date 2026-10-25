@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Details</title>
+</head>
+<body>
+    <div class="userDetails">
+
+        <% userDetail.forEach((user)=>{ %>
+
+            <div class="user">
+                
+                <p> Receiver's Name : <%= receiverName %></p>
+                <p> Receiver's Contact : <%= Contact %></p>
+                <p> Landmark / Building : <%= landmark %></p>
+                <p> City : <%= city %></p>
+                <p> State: <%= state %></p>
+                <p> Pincode : <%= pincode %></p>
+
+            </div>
+
+        <% }) %>
+
+        <a href="addressDetails.ejs">Add New Address</a>
+    </div>
+</body>
+</html>

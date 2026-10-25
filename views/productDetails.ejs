@@ -34,6 +34,7 @@
             <p><strong>Rating:</strong> ⭐ <%= product.ratings %>/5</p>
             <p><strong>Description:</strong> <%= product.description %></p>
             <a href="/home" class="back-btn">Back to Products</a>
+            <a href="/home/cart/<%= product.id %>" class="back-btn" data-productId="<%= product.id %>" id="addToCart">Add to cart</a>
             
             </div>
 </body>

@@ -22,12 +22,16 @@
             <img src="/<%= product.image.replace(/^public\//, '') %>" alt="<%= product.name %>">
 
             <a href="/home/products/<%= product.id %>"> View Details  </a>
-            <a href="/home/cart/<%= product.id %>">Add to cart</a>
+
+            <a href="/home/cart/<%= product.id %>" data-productId="<%= product.id %>" id="addToCart">Add to cart</a>
+
          </div>
     <% }); %>
          </div>
           <button type="button" id="load-more" data-next-cursor= "<%= nextCursor || ''%>" <%= hasMore ? '' : 'hidden' %>>Load More.</button>
+
     <script src="/js/home.js" defer></script>
+    <script src="/js/addToCart.js" defer></script>
 
 </body>
 </html>

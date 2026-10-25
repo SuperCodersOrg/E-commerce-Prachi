@@ -9,19 +9,20 @@ function verifyToken(req, res, next){
     const token = req.cookies[Cookie_Name];
 
    console.log('Cookies:', req.cookies);
-console.log('Token:', req.cookies?.[Cookie_Name]);
+    console.log('Token:', req.cookies?.[Cookie_Name]);
 
     console.log("u",token);
     
 
     if(!token){
         console.log("user is not verified");
-       return res.redirect('/auth/login');
+    //    return res.redirect('/auth/login');
+    return next();
     }
     
         try{
 
-            console.log("User");
+           console.log("User");
            const decode = jwt.verify(token , cookie_Security_Key);
            req.user = decode;
            next();
@@ -31,8 +32,12 @@ console.log('Token:', req.cookies?.[Cookie_Name]);
     catch(error){
 
         console.log("error: ", error);
-        res.clearCookie(Cookie_Name);
-        return redirect('/login');
+        res.clearCookie(Cookie_Name,{
+            httpOnly: true,
+            sameSite: 'lax',
+        });
+        // req.user = undefined;
+        return next();
     }
 }
 module.exports = verifyToken;

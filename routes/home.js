@@ -16,6 +16,7 @@ const Products = require('../Modles/products.js');
 const addToCart = require('../Modles/addToCart.js');
 const { default: mongoose } = require('mongoose');
 router.use( verifyToken);
+const UserAddress = require('../Modles/address.js');
 
 const limit = 5;
 
@@ -93,10 +94,49 @@ router.get('/products/:id',async(req,res)=>{
     }
     console.log(product);
     res.render('productDetails',{ product });
-
+    console.log("ADD TO CART ROUTE REACHED");
 });
 
-router.get('/cart/:id', async (req,res,next)=>{
+router.get('/cart', async(req,res)=>{
+    if(!req.user){
+        console.log("yes it exists");
+        return res.redirect('/auth/login');
+    }
+    console.log("noo");
+    const userId = req.user.userId;
+
+    const cartItems = await addToCart .find({user : userId}).populate('products');
+
+     if (cartItems.length === 0) {
+            return res.status(400).send('Your cart is empty');
+        }
+
+    return res.render('cartDetails', { cartItems });
+})
+
+router.get('/cart/confirm', async(req,res)=>{
+
+     if(!req.user){
+        console.log("yes it exists");
+        return res.redirect('/auth/login');
+    }
+
+    const userId = req.user.userId;
+    const cartItems = await addToCart.find({ user: userId}).populate('products');
+
+    if(!cartItems.length) return  res.status(400).send('Your cart is empty');
+
+    if (cartItems.length === 0) {
+            return res.status(400).send('Your cart is empty');
+        }
+
+    return res.render('addressForm', { cartItems });
+
+})
+
+
+router.post('/cart/:id', verifyToken,async (req,res,next)=>{
+    console.log("ADD TO CART ROUTE REACHED");
 
     let { id }  = req.params;
     console.log("item selected",id);
@@ -106,10 +146,6 @@ router.get('/cart/:id', async (req,res,next)=>{
             message: "Invalid product Id"
         });
     }
-
-    // if(!(req.user && req.user.userId)){
-    //      return res.redirect(`/auth/login?productId=${encodeURIComponent(id)}`);
-    // }
 
     const Product = await Products.findById(id);
     
@@ -123,13 +159,14 @@ router.get('/cart/:id', async (req,res,next)=>{
 
     if(!req.user){  
         
-        console.log(req.user);
+        // console.log(req.user);
          
-        return res.render('login');
-        // return res.status(401).json({
-        //     userNotLogin: true,
-        //     message: 'please log in to save your cart'
-        // });
+        // return res.render('login');
+
+        return res.status(401).json({
+        userNotLogin: true,
+        message: 'Please log in to save your cart'
+    });
 
     }
     const userId = req.user.userId; 
@@ -162,35 +199,7 @@ router.get('/cart/:id', async (req,res,next)=>{
         console.log("product selected is: ",Product);
         return res.redirect('/home/cart');
 
-//    return res.render('login.ejs');
-})
-
-router.get('/cart', async(req,res)=>{
-    if(!req.user){
-        console.log("yes it exists");
-        return res.redirect('/auth/login');
-    }
-    console.log("noo");
-
-    const cartItems = await addToCart .find({user : req.user.userId}).populate('products');
-    return res.render('cartDetails', { cartItems });
-})
-
-router.post('/cart/confirm', async(req,res)=>{
-
-     if(!req.user){
-        console.log("yes it exists");
-        return res.redirect('/auth/login');
-    }
-
-    const userId = req.user.userId;
-    const cardItems = await addToCart.find({ user: userId});
-
-    if(!cartItems.length) return  res.status(400).send('Your cart is empty');
-
-    return res.render('addressForm', {addresses});
-
-})
+});
 
 router.post('/address',async(req,res)=>{
     if(!req.user){
@@ -200,21 +209,26 @@ router.post('/address',async(req,res)=>{
     const userId = req.user.userId;
     const { receiverName,
         contact,
-        building,
+        landmark,
         city,
         state,
         pincode
     } = req.body;
 
-    if(!receiverName || !contact || !building || !city|| !state||  !pincode){
+    if(!receiverName || !contact || !landmark || !city|| !state||  !pincode){
            return res.status(400).send(
                 'Please fill all required address fields'
             )
+
     }
 
-    const cartItems = await addToCart.find({user : user.userId}).populate('products');
+    const cartItems = await addToCart.find({user : userId}).populate('products');
 
      if (!cartItems.length) {
+            return res.status(400).send('Your cart is empty');
+        }
+
+          if (cartItems.length === 0) {
             return res.status(400).send('Your cart is empty');
         }
 
@@ -237,8 +251,9 @@ router.post('/address',async(req,res)=>{
             orderItems.push({
                 product: item.products._id,
                 name: item.products.name,
-                price,
-                quantity: item.quantity
+                price:  price,
+                quantity: item.quantity,
+                image: item.products.image,
             })
             total += price * item.quantity;
         }
@@ -247,7 +262,6 @@ router.post('/address',async(req,res)=>{
             user: userId,
             receiverName,
             contact,
-            building,
             landmark,
             city,
             state,

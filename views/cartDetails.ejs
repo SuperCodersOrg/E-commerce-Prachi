@@ -9,21 +9,29 @@
     <h1>Hi! cart here</h1>
     <div class="product">
 
-        <% product.forEach((item)=>{ %>
+        <% if (cartItems.length === 0) { %>
+    <p>Your cart is empty.</p>
+<% } else { %>
+
+        <% cartItems.forEach((item)=>{ %>
             <div class="product-card">
-                <h2><%= item.name %></h2>
-                <p>Price: ₹<%= item.price %></p>
-                <p>quantity + or -</p>
-                <% if(item.image) { %>
-                    <img src="/images/<%= item.image %>" alt="<%= item.name %>" width="150">
+                <h2><%= item.products.name %></h2>
+                <p>Price: ₹<%= item.products.price %></p>
+                <p>Quantity:<%= item.quantity %></p>
+                <% if(item.products.image) { %>
+                    <img src="/<%= product.image ? product.image.replace(/^public\//, ''): '' %>" alt="<%= item.products.name %>" width="150">
                   <% } %>
+        <p>Total: ₹<%= item.products.price * item.quantity %></p>
 
             </div>
 
              <hr>
        <% }) %>
-        <p>Total:</p>
-       <a href="/userAddress">Place Order</a>
+       <% } %>
+
+   <% if (cartItems.length > 0) { %>
+    <a href="/home/cart/confirm">Confirm Order</a>
+<% } %>
 
     </div>
 </body>

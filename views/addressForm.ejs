@@ -9,15 +9,15 @@
 
 <body>
 
-    <form action="/userAddress" method="POST">
+    <form action="/home/address" method="POST">
 
         <label for="receiver">Receiver's Name</label>
-        <input type="text" id="receiver" name="receiver" required>
+        <input type="text" id="receiver" name="receiverName" required>
 
         <br />
         <label for="contact">Contact Number</label>
-        <input type="tel" id="UserName" name="UserName" required>
-       
+        <input type="tel" id="UserName" name="contact" required>
+
         <br />
         <label for="landmark/Building">Landmark / Building </label>
         <input type="text" id="landmark/Building" name="landmark" required>
@@ -74,10 +74,13 @@
 
 
         <br />
-        <button type="submit" id="saveAdd" name="address" >Save Address & Pay</button>
+        
+
+            <button type="submit">Save Address & Continue</button>
+        
         <br />
 
-        
+
     </form>
 
 </body>

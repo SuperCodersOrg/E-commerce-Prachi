@@ -8,7 +8,7 @@
 <body>
     <div class="products">
 
-        <% products.forEach((product)=>{ %>
+        <% orderItems.forEach((product)=>{ %>
 
             <div class="billData">
 
@@ -16,17 +16,19 @@
                 <p> <%= product.name %></p>
                 <p> <%= product.quantity %></p>
                 <p> <%= product.price %></p>
-                <p> <%= product.gst %></p>
-                <p> <%= Total  %></p>
-                
-               
+ 
+               <img src="<%= product.image.replace(/^public\//, '')%>" alt="image">
             </div>
 
         <%  }) %>
 
+        <h2>Total: ₹<%= total %></h2>
+
         <h3>Mode of Payment : </h3>
 
-        <label>Cash On Delivery
+        <form action="/home/payment" method="POST">
+
+             <label>Cash On Delivery
 
         <input type="radio" name="payment" value="COD">
 
@@ -46,6 +48,9 @@
 
         
             <button type="submit">Pay</button>
+
+        </form>
+       
 
     </div>
 </body>

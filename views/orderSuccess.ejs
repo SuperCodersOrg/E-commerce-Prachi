@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seraphic</title>
+</head>
+<body>
+    <h1>Thank you for your order!</h1>
+    <p>Order ID: <%= order._id %></p>
+    <p>Payment ID: <%= order.razorpayPaymentId %></p>
+    <p>Payment Status: <%= order.paymentStatus %></p>
+    <p>Total Paid: ₹<%= order.totalAmount.toFixed(2) %></p>
+     <% if (order.address) { %>
+        <h2>Delivery Address</h2>
+        <p><%= order.address.receiverName %></p>
+        <p><%= order.address.landmark %></p>
+        <p><%= order.address.city %>, <%= order.address.state %></p>
+        <p><%= order.address.pincode %></p>
+    <% } %>
+        <a href="/home">Continue shopping</a>
+</body>
+</html>

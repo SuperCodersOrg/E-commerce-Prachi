@@ -18,12 +18,15 @@ const homeRoutes = require("./routes/home.js");
 const User = require('./Modles/user.js');
 
 require('dotenv').config();
+
 const connectDb = require('./config/db.js');
+const razorpay = require('./config/razorpay');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname,'public')));
 app.set('view engine','ejs');
+
 
  connectDb();
 

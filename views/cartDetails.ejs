@@ -19,17 +19,15 @@
                 <p>Price: ₹<%= item.products.price %></p>
                 <p>Quantity:<%= item.quantity %></p>
                 <% if(item.products.image) { %>
-                    <img src="/<%= product.image ? product.image.replace(/^public\//, ''): '' %>" alt="<%= item.products.name %>" width="150">
+                    <img src="/<%= item.products.image.replace(/^public\//, '') %>" alt="<%= item.products.name %>" width="150">
                   <% } %>
         <p>Total: ₹<%= item.products.price * item.quantity %></p>
 
             </div>
-
-             <hr>
+             <hr> 
        <% }) %>
-       <% } %>
-
-   <% if (cartItems.length > 0) { %>
+       <% } %> 
+       <% if (cartItems.length > 0) { %>
     <a href="/home/cart/confirm">Confirm Order</a>
 <% } %>
 

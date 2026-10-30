@@ -76,6 +76,17 @@ exports.postLogin = async (req, res) => {
         maxAge: 60 * 60 * 1000
     })
 
+     const adminEmail = (
+            process.env.ADMIN_EMAIL || ""
+        ).trim().toLowerCase();
+
+        if (
+            adminEmail &&
+            user.email.trim().toLowerCase() === adminEmail
+        ) {
+            return res.redirect("/admin/dashboard");
+        }
+
     res.redirect('/home');
 
 }

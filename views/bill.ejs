@@ -1,57 +1,252 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bill</title>
+    <title>Order Bill | Seraphic</title>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+            background: #F8F5F0;
+            color: #49372D;
+        }
+
+        .bill {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 24px;
+            background: white;
+            border-radius: 12px;
+        }
+
+        .billData {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid #E5DCD1;
+        }
+
+        .billData img {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .productInfo {
+            flex: 1;
+        }
+
+        .productInfo p {
+            margin: 6px 0;
+        }
+
+        .total {
+            text-align: right;
+            margin-top: 24px;
+        }
+
+        #payNow {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            background: #49372D;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #payNow:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #paymentMessage {
+            margin-top: 12px;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="products">
 
-        <% orderItems.forEach((product)=>{ %>
+    <div class="bill">
 
-            <div class="billData">
+        <h1>Order Summary</h1>
 
-               <p> <%= product.image  %></p>
-                <p> <%= product.name %></p>
-                <p> <%= product.quantity %></p>
-                <p> <%= product.price %></p>
- 
-               <img src="/<%= product.image.replace(/^public\//, '')%>" alt="image">
-            </div>
+        <div class="products">
 
-        <%  }) %>
+            <% orderItems.forEach((product) => { %>
 
-        <h2>Total: ₹<%= total %></h2>
+                <div class="billData">
 
-        <h3>Mode of Payment : </h3>
+                    <img
+                        src="/<%= product.image.replace(/^public\//, '') %>"
+                        alt="<%= product.name %>"
+                    >
 
-        <form action="/home/payment" method="POST">
+                    <div class="productInfo">
+                        <h3><%= product.name %></h3>
+                        <p>Quantity: <%= product.quantity %></p>
+                        <p>Price per item: ₹<%= product.price %></p>
+                        <p>
+                            Subtotal:
+                            ₹<%= (product.price * product.quantity).toFixed(2) %>
+                        </p>
+                    </div>
 
-             <label>Cash On Delivery
+                </div>
 
-        <input type="radio" name="payment" value="COD">
+            <% }) %>
 
-        </label>
-        
-        <label>UPI
+        </div>
 
-            <input type="radio" name="payment" value="UPI"> 
+        <div class="total">
+            <h2>Total: ₹<%= Number(total).toFixed(2) %></h2>
+        </div>
 
-        </label>
+        <p>Payment method: Razorpay Checkout</p>
 
-        <label>Credit Card / Debit Card
+        <button type="button" id="payNow">
+            Pay Now
+        </button>
 
-            <input type="radio" name="payment" value="card"> 
-
-        </label>
-
-        
-            <button type="submit">Pay</button>
-
-        </form>
-       
+        <p id="paymentMessage" role="status" aria-live="polite"></p>
 
     </div>
+
+    <script>
+        const internalOrderId = <%- JSON.stringify(internalOrderId) %>;
+
+        const payButton = document.getElementById('payNow');
+        const paymentMessage = document.getElementById('paymentMessage');
+
+        payButton.addEventListener('click', async function () {
+
+            payButton.disabled = true;
+            paymentMessage.textContent = 'Preparing your payment...';
+
+            try {
+                // Step 1: Create or retrieve the Razorpay order.
+                const response = await fetch('/home/payment/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        internalOrderId: internalOrderId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.message || 'Unable to start payment'
+                    );
+                }
+
+                // Step 2: Open Razorpay Checkout.
+                const options = {
+                    key: data.key,
+                    amount: data.amount,
+                    currency: data.currency,
+                    order_id: data.orderId,
+
+                    name: 'Seraphic',
+                    description: 'E-commerce order payment',
+
+                    handler: async function (paymentResponse) {
+
+                        paymentMessage.textContent =
+                            'Verifying your payment...';
+
+                        try {
+                            // Step 3: Verify payment on the backend.
+                            const verifyResponse = await fetch(
+                                '/home/payment/verify',
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        internalOrderId: internalOrderId,
+                                        razorpay_payment_id:
+                                            paymentResponse.razorpay_payment_id,
+                                        razorpay_order_id:
+                                            paymentResponse.razorpay_order_id,
+                                        razorpay_signature:
+                                            paymentResponse.razorpay_signature
+                                    })
+                                }
+                            );
+
+                            const result = await verifyResponse.json();
+
+                            if (!verifyResponse.ok || !result.success) {
+                                throw new Error(
+                                    result.message ||
+                                    'Payment verification failed'
+                                );
+                            }
+
+                            // Step 4: Redirect only after verification.
+                            window.location.href =
+                                '/home/payment/success/' + result.orderId;
+
+                        } catch (error) {
+                            paymentMessage.textContent = error.message;
+                            payButton.disabled = false;
+                        }
+                    },
+
+                    modal: {
+                        ondismiss: function () {
+                            paymentMessage.textContent =
+                                'Payment window closed. You can try again.';
+                            payButton.disabled = false;
+                        }
+                    },
+
+                    theme: {
+                        color: '#49372D'
+                    }
+                };
+
+                const checkout = new Razorpay(options);
+
+                checkout.on('payment.failed', function (failure) {
+                    console.error('Payment failed:', failure.error);
+
+                    paymentMessage.textContent =
+                        'Payment failed. Please try again.';
+
+                    payButton.disabled = false;
+                });
+
+                checkout.open();
+
+                paymentMessage.textContent = '';
+
+            } catch (error) {
+                console.error('Payment initiation error:', error);
+
+                paymentMessage.textContent =
+                    error.message || 'Unable to initiate payment.';
+
+                payButton.disabled = false;
+            }
+        });
+    </script>
+
 </body>
 </html>

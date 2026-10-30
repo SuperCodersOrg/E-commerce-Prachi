@@ -1,14 +1,13 @@
 const mongoose = require('mongoose');
-const razorpay = require('../config/razorpay');
-const order = new mongoose.Schema({
+const orderSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "user",
+        ref: 'user',
         required: true
     },
     address:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "user",
+        ref: 'UserAddress',
         required: true
     },
     items: 
@@ -16,7 +15,7 @@ const order = new mongoose.Schema({
             {
                 product: {
                     type: mongoose.Schema.Types.ObjectId,
-                         ref: "Products",
+                         ref: 'Products',
                     required: true
                 },
                 name: {
@@ -34,15 +33,9 @@ const order = new mongoose.Schema({
                 image: String
             }
         ],
-
-        totalAmount: {
-            type: Number,
-            required: true,
-            min: 0
-        },
     
     totalAmount: {
-        type: String,
+        type: Number,
         required: true,
         min: 0,
     },

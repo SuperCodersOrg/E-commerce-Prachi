@@ -19,6 +19,13 @@ const addToCart = new mongoose.Schema({
         required: true
     },
        
-})
+},
+{ timestamps : true}
+);
+
+addToCart.index(
+    { user: 1, products: 1},
+    { unique : true }
+)
 
 module.exports = mongoose.model("addToCart",addToCart);

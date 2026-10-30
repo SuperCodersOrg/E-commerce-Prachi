@@ -1,36 +1,81 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add to Cart</title>
+    <title>My Cart</title>
 </head>
 <body>
-    <h1>Hi! cart here</h1>
-    <div class="product">
+    <h1>My Cart</h1>
 
-        <% if (cartItems.length === 0) { %>
-    <p>Your cart is empty.</p>
-<% } else { %>
+    <% if (!cartItems || cartItems.length === 0) { %>
+        <p>Your cart is empty.</p>
+        <a href="/home">Continue shopping</a>
+    <% } else { %>
 
-        <% cartItems.forEach((item)=>{ %>
-            <div class="product-card">
-                <h2><%= item.products.name %></h2>
-                <p>Price: ₹<%= item.products.price %></p>
-                <p>Quantity:<%= item.quantity %></p>
-                <% if(item.products.image) { %>
-                    <img src="/<%= item.products.image.replace(/^public\//, '') %>" alt="<%= item.products.name %>" width="150">
-                  <% } %>
-        <p>Total: ₹<%= item.products.price * item.quantity %></p>
+        <% let cartTotal = 0; %>
 
-            </div>
-             <hr> 
-       <% }) %>
-       <% } %> 
-       <% if (cartItems.length > 0) { %>
-    <a href="/home/cart/confirm">Confirm Order</a>
-<% } %>
+        <% cartItems.forEach((item) => { %>
+            <% if (item.products) { %>
+                <% const product = item.products; %>
+                <% const subtotal = product.price * item.quantity; %>
+                <% cartTotal += subtotal; %>
 
-    </div>
+                <div class="product-card">
+                    <h2><%= product.name %></h2>
+
+                    <% if (product.image) { %>
+                        <img
+                            src="/<%= product.image.replace(/^public\//, '') %>"
+                            alt="<%= product.name %>"
+                            width="150"
+                        >
+                    <% } %>
+
+                    <p>Price: ₹<%= product.price %></p>
+                    <p>Quantity: <%= item.quantity %></p>
+                    <p>Subtotal: ₹<%= subtotal %></p>
+                    <p>Available stock: <%= product.stock %></p>
+
+                    <% if (product.stock < 1) { %>
+                        <p role="alert">Out of stock</p>
+                    <% } else if (item.quantity > product.stock) { %>
+                        <p role="alert">
+                            Only <%= product.stock %> item(s) available.
+                            Please adjust your quantity before checkout.
+                        </p>
+                    <% } %>
+
+                    <a href="/home/products/<%= product._id %>">
+                        View Details
+                    </a>
+                </div>
+
+                <hr>
+            <% } else { %>
+                <p role="alert">
+                    A product in your cart is no longer available.
+                </p>
+            <% } %>
+        <% }) %>
+
+        <h2>Cart total: ₹<%= cartTotal %></h2>
+
+        <% const hasInvalidStock = cartItems.some(item =>
+            !item.products ||
+            item.products.stock < 1 ||
+            item.quantity > item.products.stock
+        ); %>
+
+        <% if (!hasInvalidStock) { %>
+            <a href="/home/cart/confirm">Confirm Order</a>
+        <% } else { %>
+            <p>Resolve stock issues before confirming your order.</p>
+        <% } %>
+
+        <a href="/home">Continue shopping</a>
+
+    <% } %>
 </body>
 </html>

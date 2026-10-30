@@ -11,7 +11,7 @@ const jwt=require('jsonwebtoken');
 const fs=require('fs');
 const path=require('path');
 
-
+const adminRouter = require("./routes/admin.js");
 const authRoutes=require("./routes/auth.js");
 const homeRoutes = require("./routes/home.js");
 
@@ -35,9 +35,10 @@ res.render('index');
 })
 
 app.use(cookie());
+app.use("/admin", adminRouter);
 app.use('/auth',authRoutes);
 app.use('/home',homeRoutes);
-app.use('/home', require('./routes/home.js'));
+// app.use('/home', require('./routes/home.js'));
 
 app.listen(port,()=>{
     console.log("server is on load!");

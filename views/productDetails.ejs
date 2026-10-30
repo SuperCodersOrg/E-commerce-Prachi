@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="/css/productDetails.css">
     <title>Home</title>
 </head>
-<body>
+<body data-authenticated="<%= isLogin ? 'true' : 'false' %>">
     <%- include('./partials/header.ejs') %>
      
     <section class="product-details">
@@ -34,8 +34,16 @@
             <p><strong>Rating:</strong> ⭐ <%= product.ratings %>/5</p>
             <p><strong>Description:</strong> <%= product.description %></p>
             <a href="/home" class="back-btn">Back to Products</a>
-            <a href="/home/cart/<%= product.id %>" class="back-btn" data-productId="<%= product.id %>" id="addToCart">Add to cart</a>
+            <% if(product.stock > 0) { %>
+            <a href="/home/cart/<%= product._id %>" class="back-btn" data-product-id="<%= product._id %>" id="addToCart" data-stock="<%= product.stock %>">Add to cart</a>
             
+
+            <% } else { %>
+                <p>Out of Stock</p>
+
+            <% } %>
             </div>
+            <script src="/js/cart.js" defer></script>
+
 </body>
 </html>

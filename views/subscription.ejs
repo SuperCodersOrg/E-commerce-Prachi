@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seraphic | Subscription</title>
+    <link rel="stylesheet" href="/css/subscription.css">
+</head>
+
+<body>
+    <div id="options">
+        <div id="option-one" class="subscription-card">
+            <h2>Seraphic Basic</h2>
+            <h1>₹299 <small>/ month</small></h1>
+            <ul>
+                <li>5% discount on purchases above ₹20,000</li>
+                <li>Free delivery</li>
+                <li>Exclusive offers</li>
+                <li>Early access to new collections</li>
+            </ul>
+            <button class="subscribeBtn" data-plan="basic">Choose Basic</button>
+        </div>
+
+        <div id="option-two" class="subscription-card">
+            <h2>Seraphic Premium</h2>
+            <h1>₹499 <small>/ month</small></h1>
+            <ul>
+                <li>10% discount on purchases above ₹35,000</li>
+                <li>Free delivery</li>
+                <li>Exclusive offers</li>
+                <li>Early access to new collections</li>
+            </ul>
+            <button class="subscribeBtn" data-plan="premium">Choose Premium</button>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const labels = { basic: "Choose Basic", premium: "Choose Premium" };
+
+            document.querySelectorAll(".subscribeBtn").forEach(function (button) {
+                button.addEventListener("click", async function () {
+                    const planType = this.dataset.plan;
+
+                    const resetButton = function () {
+                        button.disabled = false;
+                        button.innerText = labels[planType];
+                    };
+
+                    if (typeof Razorpay === "undefined") {
+                        alert("Payment script could not load. Check your internet or ad blocker.");
+                        return;
+                    }
+
+                    try {
+                        button.disabled = true;
+                        button.innerText = "Please wait...";
+
+                        const response = await fetch("/subscription/" + planType, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" }
+                        });
+
+                        if (response.status === 401) {
+                            window.location.href = "/auth/login";
+                            return;
+                        }
+
+                        const data = await response.json();
+
+                        if (!data.success) {
+                            alert(data.message);
+                            resetButton();
+                            return;
+                        }
+
+
+
+
+
+                        // const options = {
+                        //     key: "<%= razorpayKey %>",
+                        //     subscription_id: data.subscriptionId,
+                        //     name: "Seraphic",
+                        //     description: planType.toUpperCase() + " Membership",
+                        //     theme: { color: "#49372D" },
+                        //     handler: async function (paymentResponse) {
+
+
+                        const options = {
+                            key: "<%= razorpayKey %>",
+                            order_id: data.orderId,
+                            amount: data.amount,
+                            currency: "INR",
+                            name: "Seraphic",
+                            description: planType.toUpperCase() + " Membership (30 days)",
+                            theme: { color: "#49372D" },
+                            handler: async function (paymentResponse) {
+
+                                try {
+                                    const verifyResponse = await fetch("/subscription/verify", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify(paymentResponse)
+                                    });
+                                    const result = await verifyResponse.json();
+
+                                    if (result.success) {
+                                        window.location.href = "/subscription/status";
+                                    } else {
+                                        alert(result.message);
+                                        resetButton();
+                                    }
+                                } catch (error) {
+                                    console.log(error);
+                                    alert("Payment verification failed!");
+                                    resetButton();
+                                }
+                            },
+                            modal: { ondismiss: resetButton }
+                        };
+
+                        const checkout = new Razorpay(options);
+                        checkout.on("payment.failed", function (response) {
+                            alert(response.error.description);
+                            resetButton();
+                        });
+                        checkout.open();
+                    } catch (err) {
+                        console.log(err);
+                        alert("Something went wrong!");
+                        resetButton();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

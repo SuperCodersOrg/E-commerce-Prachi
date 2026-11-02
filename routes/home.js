@@ -25,6 +25,13 @@ router.use( verifyToken);
 const UserAddress = require('../Modles/address.js');
 // const products = require('../Modles/products.js');
 
+const User = require('../Modles/user.js');
+
+const DISCOUNT_RULES = {
+    basic:   { percent: 5,  minAmount: 20000 },
+    premium: { percent: 10, minAmount: 35000 }
+};
+
 const limit = 5;
 
 router.get('/',async (req,res)=>{
@@ -107,110 +114,172 @@ router.get('/products/:id',async(req,res)=>{
     console.log("ADD TO CART ROUTE REACHED");
 });
 
-router.get('/cart', async(req,res)=>{
+
+
+function getUserId(req) {
+    return req.user && req.user.userId ? req.user.userId : null;
+}
+
+router.get('/cart', async (req, res) => {
     try {
-    if(!req.user){
-        console.log("yes it exists");
-        return res.redirect('/auth/login');
+        const userId = getUserId(req);
+        let cartItems = [];
+
+        if (userId) {
+            cartItems = await addToCart.find({ user: userId }).populate('products');
+        }
+
+        return res.render('cartDetails', {
+            cartItems,
+            isLogin: Boolean(userId)
+        });
+    } catch (err) {
+        console.error('Cart page error:', err);
+        return res.status(500).send('Unable to load your cart');
     }
-    console.log("noo");
-    // const userId = req.user.userId;
-
-    const cartItems = await addToCart .find({user : req.user.userId}).populate('products');
-
-    //  if (cartItems.length === 0) {
-    //         return res.status(400).send('Your cart is empty');
-    //     }
-
-    return res.render('cartDetails', { cartItems });
-}
-catch(err){
-document.addEventListener("DOMContentLoaded", () => {
-    mergeGuestCart();
-
 });
-}
 
-})
+router.get('/cart/confirm', async (req, res) => {
+    const userId = getUserId(req);
+    if (!userId) {
+        return res.redirect('/auth/login?next=checkout');
+    }
+
+    try {
+        const cartItems = await addToCart.find({ user: userId }).populate('products');
+
+        const invalid =
+            cartItems.length === 0 ||
+            cartItems.some(i => !i.products || i.products.stock < 1 || i.quantity > i.products.stock);
+
+        if (invalid) {
+            return res.redirect('/home/cart');
+        }
+
+        return res.render('addressForm');
+    } catch (err) {
+        console.error('Confirm page error:', err);
+        return res.status(500).send('Unable to open the address form');
+    }
+});
 
 
-// router.get('/cart/:id', async(req,res)=>{
+router.post('/cart/guest-details', async (req, res) => {
+    try {
+        const { ids } = req.body;
 
-  
-//      if(!req.user){
-//         console.log("yes it exists");
-//         return res.redirect('/auth/login');
-//     }
+        if (!Array.isArray(ids)) {
+            return res.status(400).json({ success: false, message: 'Invalid data.' });
+        }
 
-//     const userId = req.user.userId;
-//     const cartItems = await addToCart.find({ user: userId}).populate('products');
+        const validIds = [...new Set(ids)]
+            .filter(id => mongoose.isValidObjectId(id))
+            .slice(0, 100);
 
-//     if(!cartItems.length) return  res.status(400).send('Your cart is empty');
+        const products = await Products.find({ _id: { $in: validIds } })
+            .select('name price image stock');
 
-//     if (cartItems.length === 0) {
-//             return res.status(400).send('Your cart is empty');
-//         }
+        return res.json({ success: true, products });
+    } catch (err) {
+        console.error('Guest details error:', err);
+        return res.status(500).json({ success: false, message: 'Unable to load cart items.' });
+    }
+});
 
-//     return res.render('addressForm', { cartItems });
 
-// })
+router.post('/cart/merge', async (req, res) => {
+    try {
+        const userId = getUserId(req);
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Please sign in.' });
+        }
+
+        const { cart } = req.body;
+        if (!Array.isArray(cart)) {
+            return res.status(400).json({ success: false, message: 'Invalid cart data.' });
+        }
+
+        // 1) validate + total quantity per product
+        const quantities = new Map();
+        for (const item of cart) {
+            if (
+                !item ||
+                !mongoose.isValidObjectId(item.productId) ||
+                !Number.isSafeInteger(item.quantity) ||
+                item.quantity < 1
+            ) {
+                return res.status(400).json({ success: false, message: 'Invalid product ID or quantity.' });
+            }
+            quantities.set(item.productId, (quantities.get(item.productId) || 0) + item.quantity);
+        }
+
+        // 2) check stock and save (quantity is capped at the available stock)
+        const notes = [];
+        for (const [productId, guestQuantity] of quantities) {
+            const product = await Products.findById(productId);
+
+            if (!product) continue;               // product was deleted
+            if (product.stock < 1) {
+                notes.push(`${product.name} is out of stock and was not added.`);
+                continue;
+            }
+
+            const existing = await addToCart.findOne({ user: userId, products: product._id });
+            const wanted = (existing ? existing.quantity : 0) + guestQuantity;
+            const finalQuantity = Math.min(wanted, product.stock);
+
+            if (finalQuantity < wanted) {
+                notes.push(`Only ${product.stock} of ${product.name} available.`);
+            }
+
+            await addToCart.findOneAndUpdate(
+                { user: userId, products: product._id },
+                { $set: { quantity: finalQuantity } },
+                { upsert: true, new: true, runValidators: true }
+            );
+        }
+
+        return res.json({ success: true, message: 'Guest cart synced.', notes });
+    } catch (err) {
+        console.error('Cart merge error:', err);
+        return res.status(500).json({ success: false, message: 'Unable to merge cart.' });
+    }
+});
 
 
-router.get('/cart/:id', async(req,res)=>{
-
-  try{
-
-    const {id} = req.params;
-    if (!req.user || !req.user.userId) {
+router.post('/cart/:id', async (req, res) => {
+    try {
+        const userId = getUserId(req);
+        if (!userId) {
             return res.status(401).json({
                 success: false,
                 userNotLogin: true,
-                message: "Please sign in to sync your cart."
+                message: 'Please log in to save your cart.'
             });
         }
+
+        const { id } = req.params;
         if (!mongoose.isValidObjectId(id)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid product ID."
-            });
-    }
+            return res.status(400).json({ success: false, message: 'Invalid product ID.' });
+        }
 
-    const quantity = req.body.quantity ?? 1;
-
-    if (!Number.isSafeInteger(quantity) || quantity < 1) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid quantity."
-            });
+        const quantity = req.body.quantity ?? 1;
+        if (!Number.isSafeInteger(quantity) || quantity < 1) {
+            return res.status(400).json({ success: false, message: 'Invalid quantity.' });
         }
 
         const product = await Products.findById(id);
-
         if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found."
-            });
+            return res.status(404).json({ success: false, message: 'Product not found.' });
+        }
+        if (product.stock < 1) {
+            return res.status(400).json({ success: false, message: 'Out of stock.' });
         }
 
-         if (product.stock < 1) {
-            return res.status(400).json({
-                success: false,
-                message: "Out of stock."
-            });
-        }
+        const existingItem = await addToCart.findOne({ user: userId, products: product._id });
+        const newQuantity = (existingItem ? existingItem.quantity : 0) + quantity;
 
-        const userId = req.user.userId;
-
-        const existingItem = await addToCart.findOne({
-            user: userId,
-            products: product._id
-        });
-
-        const newQuantity =
-            (existingItem ? existingItem.quantity : 0) + quantity;
-
-            if (newQuantity > product.stock) {
+        if (newQuantity > product.stock) {
             return res.status(400).json({
                 success: false,
                 message: `Only ${product.stock} item(s) available in stock.`
@@ -221,333 +290,94 @@ router.get('/cart/:id', async(req,res)=>{
             existingItem.quantity = newQuantity;
             await existingItem.save();
         } else {
-            await addToCart.create({
-                user: userId,
-                products: product._id,
-                quantity
-            });
+            await addToCart.create({ user: userId, products: product._id, quantity });
         }
 
         return res.status(200).json({
             success: true,
-            message: "Product added to cart.",
+            message: 'Product added to cart.',
             quantity: newQuantity
         });
-}
-    catch(err){
-
-        console.error("Add to cart route error:", err);
-    
-
-    return res.status(500).json({
-            success: false,
-            message: "Unable to add product to cart."
-        });
+    } catch (err) {
+        console.error('Add to cart route error:', err);
+        return res.status(500).json({ success: false, message: 'Unable to add product to cart.' });
     }
-})
-
-router.post('/cart/merge', async (req,res)=>{
-
-    try{
-        if(!req.user || !req.user.userId){
-            return res.status(401).json({
-                 success: false,
-                message: "plaese signin "
-            });
-        }
-
-        const userId = req.user.userId;
-        const quantities = new Map();//
-
-        const { cart } = req.body;
-
-        // if(!Array.isArray(cart)){
-        //     return res.status(400).json({
-        //         success: false,
-        //         message: "Invalid cart data"
-
-        //     });
-            
-        // }
-
-        for(const item of cart){
-            if(!item || !mongoose.isValidObjectId(item.productId) || !Number.isSafeInteger(item.quantity) || item.quantity < 1){
-                 return res.status(400).json({
-                    success: false,
-                    message: "Invalid product ID or quantity"
-                });
-            }
-
-            const productId = item.productId;
-
-            const totalQuantity =
-                (quantities.get(productId) || 0) + item.quantity;
-
-                if (!Number.isSafeInteger(totalQuantity)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid cart quantity."
-                });
-            quantities.set(productId, totalQuantity);
-
-            }
-
-            const plans = [];
-            for (const [productId, guestQuantity] of quantities) {
-            
-            const product = await Products.findById(item.productId);
-
-            if(!product){
-                return res.status(400).json({
-                     success: false,
-                    message: "A product in your cart no longer exists"
-                });
-            }
-        
-        const existingItem = await addToCart.findOne({
-            user: userId,
-            products: product._id
-        });
-
-        const finalQuntity = (existingItem ? existingItem.quantity: 0) + guestQuantity;
-
-
-        if (product.stock < 1 || finalQuantity > product.stock) {
-                return res.status(400).json({
-                    success: false,
-                    message: product.stock < 1
-                        ? `${product.name} is out of stock.`
-                        : `Only ${product.stock} item(s) of ${product.name} are available.`
-                });
-            }
-
-            plans.push({
-                productId: product._id,
-                quantity: finalQuantity
-            });
-        }
-
-        for (const plan of plans) {
-            await addToCart.findOneAndUpdate(
-                {
-                    user: userId,
-                    products: plan.productId
-                },
-                {
-                    $set: {
-                        quantity: plan.quantity
-                    },
-                    $setOnInsert: {
-                        user: userId,
-                        products: plan.productId
-                    }
-                },
-                {
-                    upsert: true,
-                    new: true,
-                    runValidators: true
-                }
-            );
-        }
-
-    }
-return res.json({
-            success: true,
-            message: "Guest cart synced successfully."
-        });
-}
-catch(err){
-
-console.log(err);
-return res.status(500).json({
-    success: false,
-    message: "Unable to merge cart"});
-
-}
-});
-
-// router.post('/cart/:id', verifyToken,async (req,res,next)=>{
-//     console.log("ADD TO CART ROUTE REACHED");
-
-// try{
-//     let { id }  = req.params;
-//     console.log("item selected",id);
-
-//     if(!mongoose.isValidObjectId(id)){
-//         return res.status(404).json({
-//             message: "Invalid product Id"
-//         });
-//     }
-
-//     const Product = await Products.findById(id);
-    
-     
-//      if(!Product){
-//         return res.status(404).send("Cart is Empty!");
-//     }
-    
-
-//     console.log("product is",Product._id);
-
-//     const user = req.user;
-
-//     if(!req.user || !req.user.userId){  
-        
-//         console.log("product to be stored",req.body);
-
-//         return res.status(401).json({
-//         userNotLogin: true,
-//         message: 'Please log in to save your cart'
-//     });
-
-//     }
-//     const userId = req.user.userId; 
-    
-//     const existingItem = await addToCart.findOne({
-//     user: userId,
-//     products: Product._id
-//    })
-
-//    if(existingItem){
-//     if(existingItem.quantity +1 > Product.stock){
-//         return res.status(400).json({message: 'Available limit reach'});
-//     }
-//     existingItem.quantity += 1;
-//     await existingItem.save();
-//    }
-
-//    else{
-//     if(Product.stock < 1){
-//         return res.status(400).json({message: 'Product out of stock'});
-//         }
-
-//       await addToCart.create({ 
-        
-//         user: userId,
-//         products:  Product._id,
-//         quantity: 1
-//         }); 
-//    }
-//         // console.log("product selected is: ",Product);
-//         // return res.redirect('/home/cart');
-
-//         return res.json({
-//             success: true,
-//             message: "Product added to cart"
-//         });
-     
-//     }
-//     catch(err){
-//         console.log(err);
-//          return res.status(500).json({
-//             message: "Unable to add product"
-//         });
-//     }
-
-// });
-
-
-
-router.post('/cart/:id', verifyToken,async (req,res,next)=>{
-    console.log("ADD TO CART ROUTE REACHED");
-
-try{
-    let { id }  = req.params;
-    console.log("item selected",id);
-
-    if(!mongoose.isValidObjectId(id)){
-        return res.status(404).json({
-            success: false,
-            message: "Invalid product Id"
-        });
-    }
-     const user = req.user;
-    
-    if(!req.user || !req.user.userId){  
-        
-        console.log("product to be stored",req.body);
-
-        return res.status(401).json({
-            success: false,
-        userNotLogin: true,
-        message: 'Please log in to save your cart'
-    });
-
-    }
-
-    const Product = await Products.findById(id);
-    
-     
-     if(!Product){
-        return res.status(404).json({
-            success: false,
-            message: 'Product not found'
-        });
-    }
-    
-
-    console.log("product is",Product._id);
-
-   
-
-    if(Product.stock <= 0 ){
-        return res.status(400).json
-        ({success: false ,
-         message: 'Product out of stock'});
-        }
-
-      await addToCart.create({ 
-        
-        user: userId,
-        products:  Product._id,
-        quantity: 1
-        }); 
-   
-
-if(existingItem){
-   if( existingItem.quantity + 1 > product.stock ){
-
-    return res.status(400).json(
-        {
-            success: false,
-            message: `only ${product.stock} item available in stock`
-        }
-    )
-   }
-existingItem.quantity += 1;
-await existingItem.save();
-}
-else{
-    await addToCart.create({
-        user: userId,
-        products: product._id,
-        quantity: 1
-    });
-}
-return res.status(200).json({
-            success: true,
-            message: 'Product added to cart'
-        });
-
-}
-    catch(err){
-        console.log(err);
-         return res.status(500).json({
-            success: false,
-            message: "Unable to add product"
-        });
-    }
-
 });
 
 
+router.patch('/cart/:id', async (req, res) => {
+    try {
+        const userId = getUserId(req);
+        if (!userId) {
+            return res.status(401).json({ success: false, userNotLogin: true, message: 'Please log in.' });
+        }
+
+        const { id } = req.params;
+        const { quantity } = req.body;
+
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ success: false, message: 'Invalid product ID.' });
+        }
+        if (!Number.isSafeInteger(quantity) || quantity < 1) {
+            return res.status(400).json({ success: false, message: 'Invalid quantity.' });
+        }
+
+        const product = await Products.findById(id);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found.' });
+        }
+        if (product.stock < 1) {
+            return res.status(400).json({ success: false, message: 'Out of stock.' });
+        }
+        if (quantity > product.stock) {
+            return res.status(400).json({
+                success: false,
+                message: `Only ${product.stock} item(s) available in stock.`
+            });
+        }
+
+        const item = await addToCart.findOneAndUpdate(
+            { user: userId, products: product._id },
+            { $set: { quantity } },
+            { new: true }
+        );
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Item is not in your cart.' });
+        }
+
+        return res.json({ success: true, quantity: item.quantity });
+    } catch (err) {
+        console.error('Update cart error:', err);
+        return res.status(500).json({ success: false, message: 'Unable to update cart.' });
+    }
+});
 
 
+router.delete('/cart/:id', async (req, res) => {
+    try {
+        const userId = getUserId(req);
+        if (!userId) {
+            return res.status(401).json({ success: false, userNotLogin: true, message: 'Please log in.' });
+        }
 
+        const { id } = req.params;
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ success: false, message: 'Invalid product ID.' });
+        }
 
+        await addToCart.deleteOne({ user: userId, products: id });
+        return res.json({ success: true, message: 'Item removed.' });
+    } catch (err) {
+        console.error('Remove cart item error:', err);
+        return res.status(500).json({ success: false, message: 'Unable to remove item.' });
+    }
+});
 
 
 router.post('/address',async(req,res)=>{
+
+    razorpayKey: process.env.RAZORPAY_API_KEY;
+
     if(!req.user){
         console.log("yes it exists");
         return res.redirect('/auth/login');
@@ -612,6 +442,26 @@ router.post('/address',async(req,res)=>{
             );
         } 
 
+        const subtotal = total;
+        let discountPercent = 0;
+        let discountAmount = 0;
+
+        const buyer = await User.findById(userId)
+            .select('subscriptionPlan subscriptionEndDate membershipDiscountUsed');
+        const rule = buyer && DISCOUNT_RULES[buyer.subscriptionPlan];
+
+        if (
+            rule &&
+            buyer.subscriptionEndDate > new Date() &&
+            !buyer.membershipDiscountUsed &&
+            subtotal > rule.minAmount
+        ) {
+            discountPercent = rule.percent;
+            discountAmount = Math.round(subtotal * rule.percent) / 100;
+        }
+
+        const finalTotal = Math.round((subtotal - discountAmount) * 100) / 100;
+
         const address = await UserAddress.create({
             user: userId,
             receiverName,
@@ -622,30 +472,38 @@ router.post('/address',async(req,res)=>{
             pincode
         });
 
-        const saveOrder = await await Order.create({
+        const saveOrder = await Order.create({
             user: userId,
             address: address._id,
             items: orderItems,
-            totalAmount: total,
+            subtotal,
+            discountPercent,
+            discountAmount,
+            totalAmount: finalTotal,
             currency: 'INR',
             paymentStatus: "pending",
             orderStatus: "pending"
-        })
+        });
 
         return res.render('bill', {
-            // address,
             orderItems,
-            total,
+            subtotal,
+            discountPercent,
+            discountAmount,
+            total: finalTotal,
             internalOrderId: saveOrder._id.toString(),
-
-            // paymentStatus: 'Payment not completed'
+            razorpayKey: process.env.RAZORPAY_API_KEY
         });
         
 })
 
+
 router.post('/payment/create',async(req,res)=>{
 
    try{
+
+    key: process.env.RAZORPAY_API_KEY;
+
     if(!req.user || !req.user.userId){
         return res.status(401).json({
             success: false,
@@ -682,6 +540,16 @@ router.post('/payment/create',async(req,res)=>{
             });
         }
 
+        if(order.discountAmount > 0){
+            const buyer = await User.findById(req.user.serId).select('membershipDiscountUsed');
+            if(buyer && buyer.membershipDiscountUsed){
+                return res.status(404).json({
+                    success: false,
+                    message: 'Your membership discount was already'
+                })
+            }
+        }
+
         const amountInPaise = Math.round(order.totalAmount * 100);
 
 
@@ -696,15 +564,12 @@ router.post('/payment/create',async(req,res)=>{
         if(order.razorpayOrderId){
             return res.json({
                 success: true,
-                key: process.env.RAZORPAY_KEY_ID,
+                key: process.env.RAZORPAY_API_KEY,
                 orderId: order.razorpayOrderId,
                 amount: amountInPaise,
                 currency: order.currency
-
             })
         }
-
-
 
         const razorpayOrder  = await razorpay.orders.create({
             amount: amountInPaise,
@@ -736,6 +601,7 @@ router.post('/payment/create',async(req,res)=>{
    }
 });
 
+
 router.post('/payment/verify',async(req,res)=>{
     try{
           if (!req.user || !req.user.userId) {
@@ -765,23 +631,6 @@ router.post('/payment/verify',async(req,res)=>{
         }
 
 
-        // if(order.paymentStatus === "paid"){
-        //  if( order.razorpayPaymentId === razorpay_payment_id && order.razorpayOrderId === razorpay_order_id){
-
-        //     return res.json({
-        //             success: true,
-        //             message: "Payment already verified",
-        //             orderId: order._id
-        //         });
-
-        //  }
-  
-        //     return res.status(409).json({
-        //         success: false,
-        //         message: "Order has already been paid"
-        //     });
-        // }
-
         if(order.razorpayOrderId != razorpay_order_id){
             return res.status(400).json({
                 success: false,
@@ -791,7 +640,7 @@ router.post('/payment/verify',async(req,res)=>{
 
 
         const expectedSignature = crypto 
-        .createHmac('sha256',process.env.RAZORPAY_KEY_SECRET)
+        .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
         .update(`${order.razorpayOrderId}|${razorpay_payment_id}`)
         .digest('hex');
 
@@ -810,15 +659,7 @@ router.post('/payment/verify',async(req,res)=>{
             razorpay_payment_id
         );
 
-        // if(order.paymentStatus != "pending"){
-        //     return res.status(400).json({
-        //     success: false,
-        //         message: "Order is not awaiting payment"
-        //     });
-        // }
-
-        // const payment = await razorpay.payments.fetch(razorpay_payment_id);
-
+    
          const expectedAmount = Math.round(
             order.totalAmount * 100
         );
@@ -874,6 +715,13 @@ router.post('/payment/verify',async(req,res)=>{
             });
             }
 
+            if(updatedOrder.discountAmount > 0){
+                await User.updateOne(
+                    { _id: req.user.userId },
+                    {$set: {membershipDiscountUsed: true}}
+                ); 
+            }
+
              await addToCart.deleteMany({
             user: req.user.userId
         });
@@ -894,6 +742,7 @@ router.post('/payment/verify',async(req,res)=>{
         });
     }
 });
+
 
 router.get('/payment/success/:id',async(req,res)=>{
     try {
@@ -926,5 +775,7 @@ router.get('/payment/success/:id',async(req,res)=>{
 
     }
 })
+
+
 
 module.exports = router;

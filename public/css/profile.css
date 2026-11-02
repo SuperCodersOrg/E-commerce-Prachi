@@ -1,0 +1,119 @@
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #F8F5F0;
+    color: #49372D;
+}
+
+.profile-page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 40px 20px 70px;
+}
+
+.profile-page h1 {
+    margin: 0 0 30px;
+    text-align: center;
+    font-family: Georgia, serif;
+    font-size: 32px;
+    font-weight: normal;
+    letter-spacing: 4px;
+}
+
+.profile-card {
+    margin-bottom: 24px;
+    padding: 26px 28px;
+    background-color: #FFFFFF;
+    border: 1px solid #E5DCD1;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(73, 55, 45, 0.08);
+}
+
+.profile-card h2 {
+    margin: 0 0 16px;
+    font-family: Georgia, serif;
+    font-size: 22px;
+    font-weight: normal;
+}
+
+.profile-card p {
+    margin: 8px 0;
+    font-size: 15px;
+}
+
+.membership.is-active {
+    border: 2px solid #49372D;
+}
+
+.plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.plan-name {
+    font-family: Georgia, serif;
+    font-size: 22px;
+    text-transform: capitalize;
+}
+
+.plan-name i { color: #B8860B; margin-right: 6px; }
+
+.plan-status {
+    padding: 4px 14px;
+    border-radius: 20px;
+    background-color: #2f6b3a;
+    color: #FFFFFF;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.perks {
+    margin: 18px 0 22px;
+    padding: 0;
+    list-style: none;
+}
+
+.perks li {
+    position: relative;
+    padding: 9px 0 9px 26px;
+    border-bottom: 1px solid #EFE8DE;
+    font-size: 14px;
+}
+
+.perks li:last-child { border-bottom: none; }
+
+.perks li::before {
+    content: "\2713";
+    position: absolute;
+    left: 0;
+    color: #2f6b3a;
+    font-weight: bold;
+}
+
+.no-plan { color: #82776D; }
+
+.profile-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 12px 22px;
+    border-radius: 5px;
+    background-color: #49372D;
+    color: #FFFFFF;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.profile-btn:hover { background-color: #705440; }
+
+@media (max-width: 600px) {
+    .profile-page { padding: 25px 14px 50px; }
+    .profile-card { padding: 20px; }
+}

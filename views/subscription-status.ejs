@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription Status | Seraphic</title>
+</head>
+<body>
+
+    <h1>Your Subscription</h1>
+
+    <% if (!subscription) { %>
+
+        <h2>No active subscription found.</h2>
+        <a href="/subscription">Choose a plan</a>
+
+    <% } else { %>
+
+        <h2>Plan: <%= subscription.plan %></h2>
+
+        <h3>Status: <%= subscription.status %></h3>
+
+        <% if (subscription.status === 'active') { %>
+
+            <h2>Welcome to Seraphic <%= subscription.plan %>!</h2>
+            <p>Your membership is active.</p>
+
+            <a href="/home">Go to Home</a>
+
+        <% } else if (subscription.status === 'authenticated') { %>
+
+            <p>Your subscription authorization is received. Activation is still pending.</p>
+
+        <% } else if (subscription.status === 'created') { %>
+
+            <p>Your subscription has been created. Complete the authorization process.</p>
+
+        <% } else { %>
+
+            <p>Your subscription is not currently active.</p>
+
+        <% } %>
+
+    <% } %>
+
+</body>
+</html>

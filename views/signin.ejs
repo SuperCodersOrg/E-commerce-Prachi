@@ -15,7 +15,7 @@
 
     <div class="signin-box">
         
-    <form method="POST" action="/auth/signin">
+    <form method="POST" action="/auth/signin<%= next ? '?next=checkout' : '' %>">
 
         <label for="username">Username: </label>
         <input type="text" placeholder="username" id="username" name="username">

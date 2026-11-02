@@ -1,17 +1,30 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Cart</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/home.css">
 </head>
-<body>
+<body data-authenticated="<%= isLogin ? 'true' : 'false' %>">
+    <%- include('./partials/header.ejs') %>
+
     <h1>My Cart</h1>
 
-    <% if (!cartItems || cartItems.length === 0) { %>
+    <% if (!isLogin) { %>
+
+        
+        <div id="guest-cart"><p>Loading your cart...</p></div>
+
+    <% } else if (!cartItems || cartItems.length === 0) { %>
+
         <p>Your cart is empty.</p>
         <a href="/home">Continue shopping</a>
+
     <% } else { %>
 
         <% let cartTotal = 0; %>
@@ -19,44 +32,57 @@
         <% cartItems.forEach((item) => { %>
             <% if (item.products) { %>
                 <% const product = item.products; %>
-                <% const subtotal = product.price * item.quantity; %>
-                <% cartTotal += subtotal; %>
+                <% const outOfStock = product.stock < 1; %>
+                <% const tooMany = !outOfStock && item.quantity > product.stock; %>
+                <% if (!outOfStock && !tooMany) { cartTotal += product.price * item.quantity; } %>
 
-                <div class="product-card">
+                <div class="product-card cart-item">
                     <h2><%= product.name %></h2>
 
                     <% if (product.image) { %>
-                        <img
-                            src="/<%= product.image.replace(/^public\//, '') %>"
-                            alt="<%= product.name %>"
-                            width="150"
-                        >
+                        <img src="/<%= product.image.replace(/^public\//, '') %>"
+                             alt="<%= product.name %>" width="150">
                     <% } %>
 
                     <p>Price: ₹<%= product.price %></p>
-                    <p>Quantity: <%= item.quantity %></p>
-                    <p>Subtotal: ₹<%= subtotal %></p>
-                    <p>Available stock: <%= product.stock %></p>
 
-                    <% if (product.stock < 1) { %>
+                    <% if (outOfStock) { %>
                         <p role="alert">Out of stock</p>
-                    <% } else if (item.quantity > product.stock) { %>
-                        <p role="alert">
-                            Only <%= product.stock %> item(s) available.
-                            Please adjust your quantity before checkout.
-                        </p>
+                    <% } else { %>
+                        <p>In stock (<%= product.stock %> available)</p>
+
+                        <% if (tooMany) { %>
+                            <p role="alert">
+                                Only <%= product.stock %> item(s) available.
+                                Please reduce the quantity.
+                            </p>
+                        <% } %>
+
+                        <div class="qty-controls">
+                            <button type="button" class="qty-dec"
+                                    data-product-id="<%= product._id %>"
+                                    data-quantity="<%= item.quantity %>"
+                                    data-stock="<%= product.stock %>">−</button>
+
+                            <span class="qty-value"><%= item.quantity %></span>
+
+                            <button type="button" class="qty-inc"
+                                    data-product-id="<%= product._id %>"
+                                    data-quantity="<%= item.quantity %>"
+                                    data-stock="<%= product.stock %>">+</button>
+                        </div>
+
+                        <p>Subtotal: ₹<%= product.price * item.quantity %></p>
                     <% } %>
 
-                    <a href="/home/products/<%= product._id %>">
-                        View Details
-                    </a>
+                    <button type="button" class="remove-item"
+                            data-product-id="<%= product._id %>">Remove</button>
+
+                    <a href="/home/products/<%= product._id %>">View Details</a>
                 </div>
 
-                <hr>
             <% } else { %>
-                <p role="alert">
-                    A product in your cart is no longer available.
-                </p>
+                <p role="alert">A product in your cart is no longer available.</p>
             <% } %>
         <% }) %>
 
@@ -77,5 +103,7 @@
         <a href="/home">Continue shopping</a>
 
     <% } %>
+
+    <script src="/js/addToCart.js" defer></script>
 </body>
 </html>

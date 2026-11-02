@@ -33,17 +33,15 @@
             <p><strong>Available Stock:</strong> <%= product.stock %></p>
             <p><strong>Rating:</strong> ⭐ <%= product.ratings %>/5</p>
             <p><strong>Description:</strong> <%= product.description %></p>
-            <a href="/home" class="back-btn">Back to Products</a>
             <% if(product.stock > 0) { %>
-            <a href="/home/cart/<%= product._id %>" class="back-btn" data-product-id="<%= product._id %>" id="addToCart" data-stock="<%= product.stock %>">Add to cart</a>
-            
-
-            <% } else { %>
-                <p>Out of Stock</p>
-
-            <% } %>
-            </div>
-            <script src="/js/cart.js" defer></script>
+    <a href="#" class="back-btn add-to-cart"
+       data-product-id="<%= product._id %>"
+       data-stock="<%= product.stock %>">Add to cart</a>
+<% } else { %>
+    <p>Out of Stock</p>
+<% } %>
+</div>
+<script src="/js/addToCart.js" defer></script>
 
 </body>
 </html>

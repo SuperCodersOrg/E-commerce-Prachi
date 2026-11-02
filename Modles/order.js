@@ -65,7 +65,19 @@ const orderSchema = new mongoose.Schema({
             type: String,
             enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
             default: "pending"
-        }
+        },
+        subtotal: {
+            type: Number, 
+            default: 0 
+        },
+        discountPercent: { 
+            type: Number, 
+            default: 0
+         },
+        discountAmount: {
+            type: Number, 
+            default: 0 
+        },
     },
     {
         timestamps: true

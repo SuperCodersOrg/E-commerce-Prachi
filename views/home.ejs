@@ -8,14 +8,12 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="/css/header.css">
-<link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/home.css">
     <title>Home</title>
 </head>
 <body data-authenticated="<%= isLogin ? 'true' : 'false' %>">
     <%- include('./partials/header.ejs') %>
-    
-    
 
     <div class="product-grid">
     <% fileData.forEach(product=>{ %>
@@ -23,26 +21,26 @@
 
             <img src="/<%= product.image.replace(/^public\//, '') %>" alt="<%= product.name %>">
 
-            <a href="/home/products/<%= product._id %>"> View Details  </a>
-
+            <a href="/home/products/<%= product._id %>"> View Details </a>
 
             <% if (product.stock > 0) { %>
-                    <a
-                        href="/home/cart/<%= product._id %>"
-                        data-product-id="<%= product._id %>"
-                        data-stock="<%= product.stock %>"
-                        id="addToCart"
-                    >
-                        Add to Cart
-                    </a>
-                <% } else { %>
-                    <p>Out of Stock</p>
-                <% } %>
+                <a
+                    href="#"
+                    class="add-to-cart"
+                    data-product-id="<%= product._id %>"
+                    data-stock="<%= product.stock %>"
+                >
+                    Add to Cart
+                </a>
+            <% } else { %>
+                <p>Out of Stock</p>
+            <% } %>
 
          </div>
     <% }); %>
-         </div>
-          <button type="button" id="load-more" data-next-cursor= "<%= nextCursor || ''%>" <%= hasMore ? '' : 'hidden' %>>Load More.</button>
+    </div>
+
+    <button type="button" id="load-more" data-next-cursor="<%= nextCursor || '' %>" <%= hasMore ? '' : 'hidden' %>>Load More</button>
 
     <script src="/js/home.js" defer></script>
     <script src="/js/addToCart.js" defer></script>

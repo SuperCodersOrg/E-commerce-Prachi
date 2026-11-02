@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Seraphic</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/profile.css">
+</head>
+<body>
+
+    <%- include('./partials/header.ejs') %>
+
+    <main class="profile-page">
+
+        <h1>My Profile</h1>
+
+        <section class="profile-card">
+            <h2>Account</h2>
+            <p><strong>Name:</strong> <%= user.username %></p>
+            <p><strong>Email:</strong> <%= user.email %></p>
+            <% if (user.createdAt) { %>
+                <p>
+                    <strong>Joined:</strong>
+                    <%= user.createdAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                </p>
+            <% } %>
+        </section>
+
+        <section class="profile-card membership <%= subscription ? 'is-active' : '' %>">
+            <h2>Membership</h2>
+
+            <% if (subscription) { %>
+
+                <div class="plan-header">
+                    <span class="plan-name">
+                        <i class="fa-solid fa-crown"></i>
+                        Seraphic <%= subscription.plan %>
+                    </span>
+                    <span class="plan-status">Active</span>
+                </div>
+
+                <% if (subscription.endDate) { %>
+                    <p>
+                        <strong>Valid until:</strong>
+                        <%= subscription.endDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                    </p>
+                <% } %>
+
+                <ul class="perks">
+                    <% if (subscription.plan === 'premium') { %>
+                        <li>10% discount on purchases above ₹35,000</li>
+                    <% } else { %>
+                        <li>5% discount on purchases above ₹20,000</li>
+                    <% } %>
+                    <li>Free delivery</li>
+                    <li>Exclusive offers</li>
+                    <li>Early access to new collections</li>
+                </ul>
+
+            <% } else { %>
+
+                <p class="no-plan">You don't have an active membership yet.</p>
+                <a href="/subscription" class="profile-btn">Explore plans</a>
+
+            <% } %>
+        </section>
+
+    </main>
+
+</body>
+</html>

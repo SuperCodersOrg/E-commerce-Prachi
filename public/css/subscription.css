@@ -1,0 +1,167 @@
+* { box-sizing: border-box; }
+
+body.page-subscription {
+    margin: 0;
+    padding: 50px 20px 70px;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background-color: #F8F5F0;
+    color: #49372D;
+}
+
+.plans-intro {
+    max-width: 640px;
+    margin: 0 auto 45px;
+    text-align: center;
+}
+
+.plans-intro h1 {
+    margin: 0 0 12px;
+    font-family: Georgia, serif;
+    font-size: 38px;
+    font-weight: normal;
+    letter-spacing: 6px;
+}
+
+.plans-intro p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #82776D;
+}
+
+#options {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 30px;
+    max-width: 820px;
+    margin: 0 auto;
+}
+
+.subscription-card {
+    position: relative;
+    flex: 1 1 320px;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    padding: 36px 30px 30px;
+    background-color: #FFFFFF;
+    border: 1px solid #E5DCD1;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 3px 12px rgba(73, 55, 45, 0.10);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.subscription-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 24px rgba(73, 55, 45, 0.18);
+}
+
+.subscription-card h2 {
+    margin: 0 0 14px;
+    font-family: Georgia, serif;
+    font-size: 24px;
+    font-weight: normal;
+    letter-spacing: 1px;
+}
+
+.subscription-card h1 {
+    margin: 0 0 24px;
+    font-family: Georgia, serif;
+    font-size: 44px;
+    font-weight: normal;
+    letter-spacing: 0;
+}
+
+.subscription-card h1 small {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #82776D;
+}
+
+.subscription-card ul {
+    flex-grow: 1;
+    margin: 0 0 28px;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+}
+
+.subscription-card li {
+    position: relative;
+    padding: 11px 0 11px 28px;
+    border-bottom: 1px solid #EFE8DE;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.subscription-card li:last-child { border-bottom: none; }
+
+.subscription-card li::before {
+    content: "\2713";
+    position: absolute;
+    left: 0;
+    top: 11px;
+    color: #2f6b3a;
+    font-weight: bold;
+}
+
+.subscribeBtn {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #49372D;
+    border-radius: 6px;
+    background-color: #49372D;
+    color: #FFFFFF;
+    font-size: 15px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.subscribeBtn:hover { background-color: #705440; border-color: #705440; }
+
+.subscribeBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#option-one .subscribeBtn {
+    background-color: transparent;
+    color: #49372D;
+}
+
+#option-one .subscribeBtn:hover {
+    background-color: #49372D;
+    border-color: #49372D;
+    color: #FFFFFF;
+}
+
+.subscription-card.featured {
+    border: 2px solid #49372D;
+    box-shadow: 0 8px 22px rgba(73, 55, 45, 0.18);
+}
+
+.badge {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 16px;
+    border-radius: 20px;
+    background-color: #49372D;
+    color: #FFFFFF;
+    font-size: 12px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+    body.page-subscription { padding: 35px 14px 50px; }
+    .plans-intro h1 { font-size: 28px; letter-spacing: 3px; }
+    .subscription-card { max-width: 100%; }
+    .subscription-card.featured { margin-top: 10px; }
+}

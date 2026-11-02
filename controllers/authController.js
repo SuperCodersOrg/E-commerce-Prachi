@@ -20,13 +20,11 @@ router.use(express.static("public"));
 const Cookie_Name = process.env.Cookie_Name;
 const cookie_Security_Key = process.env.cookie_Security_Key;
 
-console.log(cookie_Security_Key);
-
-
 
 exports.getLogin = (req, res) => {
 
-    res.render('login');
+   res.render('login', { next: req.query.next === 'checkout' ? 'checkout' : '' });
+
 }
 
 exports.postLogin = async (req, res) => {
@@ -87,13 +85,13 @@ exports.postLogin = async (req, res) => {
             return res.redirect("/admin/dashboard");
         }
 
-    res.redirect('/home');
+    res.redirect(req.query.next === 'checkout' ? '/home/cart?checkout=1' : '/home');
 
 }
 
 exports.getSignin = (req, res) => {
 
-    res.render('signin');
+    res.render('signin', { next: req.query.next === 'checkout' ? 'checkout' : '' });
 
 }
 
@@ -149,7 +147,7 @@ exports.postSignin = async (req, res) => {
 
     console.log(req.body);
 
-    res.redirect('/home');
+    res.redirect(req.query.next === 'checkout' ? '/home/cart?checkout=1' : '/home');
 
 }
 

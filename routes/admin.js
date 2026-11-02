@@ -311,7 +311,6 @@ router.get("/analytics/data", async (req, res) => {
                 }
             ]),
 
-            // per product: orders, units sold, revenue
             Order.aggregate([
                 { $match: match },
                 { $unwind: "$items" },

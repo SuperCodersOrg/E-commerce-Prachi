@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
         membershipDiscountUsed: {
             type: Boolean,
             default: false
-},
+        },
     },
     {
         timestamps: true

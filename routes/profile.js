@@ -36,7 +36,6 @@ router.get('/', async (req, res) => {
                 endDate: user.subscriptionEndDate
             };
         } else {
-            // Fallback: look at the payment records and repair the user
             const sub = await Subscription.findOne({
                 user: userId,
                 status: 'active',
